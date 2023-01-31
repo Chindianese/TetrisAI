@@ -45,8 +45,11 @@ def print_board(game_board, title="board",start=0):
     for row in range(start, 23):
         for col in range(10):
             number = game_board[row][col]
-            if number == 0:
-                print(colored('0 ', 'grey'), end='')
+            if number == 0: 
+                if row < 5:
+                    print(colored('0 ', 'blue'), end='')
+                else:
+                    print(colored('0 ', 'grey'), end='')
             if number == 1:
                 print(colored('0 ', 'white'), end='')
             if number == 2:
@@ -54,7 +57,7 @@ def print_board(game_board, title="board",start=0):
         print('')
 
 
-def num_time_shift_left(game_board):
+def num_time_shift_left(game_board): 
     shifted_board = copy.deepcopy(game_board)
     num_times_shift = 0
     for i in range(0, 10):

@@ -8,16 +8,22 @@ import copy
 def start_ai(game_borders):
     # ai loop
     keyboard.wait("tab")
+    switched_piece = False
+    total_score = 0
+    num_attempts = 0
+    prev_score = 0
     while True:
         score_list = []
         num_times_shift_list = []
         best_boards = []
         rot_board = []
         initial_score = 0
+        loop_start = time.time()
+        skip = 0
         for rotate_index in range(0, 4):
-            loop_start = time.time()
             game_screen = screengrabber.grab_screen(game_borders, False)
             game_board = tetrisboard.screenshot_to_array(game_screen)
+            # tetrisboard.print_board(game_board)
             if rotate_index == 0:
                 edited = copy.deepcopy(game_board)
                 for i in range(0, len(game_board)):
@@ -25,7 +31,7 @@ def start_ai(game_borders):
                         if edited[i][j] == 2: 
                             edited[i][j] = 0
                 initial_score = score_board(edited)
-                print("Initial score: ", initial_score)
+                # print("Initial score: ", initial_score)
             # tetrisboard.print_board(game_board)           
             num_times_shift = tetrisboard.num_time_shift_left(game_board)
             shifted = tetrisboard.shift_moving_left_max(game_board, num_times_shift)
@@ -33,6 +39,7 @@ def start_ai(game_borders):
             for board in rot_board:
                 if board == shifted:
                     repeat = True
+                    skip += 1
                     break
             if repeat:
                 wait.key_press_wait(Key.up)
@@ -55,15 +62,33 @@ def start_ai(game_borders):
             score_list.append((best_board_index, best_board_score))
             # rotate piece 
             wait.key_press_wait(Key.up)
-            # print("loop", time.time() - loop_start)
             # print("offset", time.time() - loop_offset )
         best_rotation = select_best_rotation(score_list)
+        current_score = score_list[best_rotation][1][0]            
+        total_score += current_score
+        num_attempts += 1
+        # print('sc', current_score)
+        # print('avg', total_score/num_attempts)    
+        if switched_piece:
+            if current_score >= prev_score:
+                print('yes')
+            else:
+                print('no')
+        if not switched_piece and current_score < -0.6:
+            wait.key_press_wait(Key.shift_l)
+            switched_piece = True
+            # print('switching')
+            prev_score = current_score
+            continue
         # for rotate_index in range(0, len(best_boards)):
         #     print_board_with_score(best_boards[rotate_index], score_list[rotate_index],rotate_index, best_rotation)
-        print_board_with_score(best_boards[best_rotation], score_list[best_rotation],best_rotation, best_rotation)
+       # print_board_with_score(best_boards[best_rotation], score_list[best_rotation],best_rotation, best_rotation)
         
-        # keyboard.wait("tab")
+        print("loop", time.time() - loop_start)
+        print("skip", skip)
+        keyboard.wait("tab")
         execute_option(num_times_shift_list[best_rotation], score_list[best_rotation][0], best_rotation)
+        switched_piece = False
 
 def print_board_with_score(board, score, rotate_index,best_rotation):
     title = "score board"
@@ -121,29 +146,53 @@ def score_all_boards(boards_list, initial_score):
 
 
 def score_board(game_board, initial_score = None): 
+    is_initial = False
     if initial_score == None:
-        initial_score = (0,0,0,0, 0)
+        initial_score = (0,0,0,0,0,0)
+        is_initial = True
+
+
+ 
     score = 0
     height_diff_multiplier = -1.2
-    line_clear_multiplier = 0.7
-    single_line_clear_multiplier = -0.6
-    hole_multiplier =  -1.2
+    line_clear_multiplier = 1.2
+    single_line_clear_multiplier = -1.2
+
+    hole_multiplier =  -1.6
     highest_multiplier =  -0.4
 
-    highest_block = height_difference_score(game_board) * height_diff_multiplier- initial_score[1]
+    height_diff = height_difference_score(game_board) * height_diff_multiplier- initial_score[1]
+    highest_point_raw = highest_block_raw(game_board)
+    line_clear_penalty = 2
+    if highest_point_raw >= 9:
+        line_clear_penalty = 1
+    if highest_point_raw >= 13:
+        line_clear_penalty = 0
+
     cls =  clear_line_score(game_board)
-    if cls == 1:
-        clear_line = cls * single_line_clear_multiplier - initial_score[2]
+    if cls <= line_clear_penalty and cls > 0:
+        clear_line = (line_clear_penalty-cls+1) * single_line_clear_multiplier - initial_score[2]
     else:
         clear_line = cls * line_clear_multiplier - initial_score[2]
     holes = hole_score(game_board) * hole_multiplier- initial_score[3]
-    highest = highest_point_score(game_board) * highest_multiplier- initial_score[4]
+    highest_current = highest_point_score(game_board) 
+    highest = (highest_current - highest_point_raw) * highest_multiplier
 
-    score += highest_block 
+    score += height_diff 
     score += clear_line
     score += holes
     score += highest
-    return (score, highest_block, clear_line, holes, highest)
+
+    # if is_initial:
+    #     print('ihigh', highest_point_raw)
+    return (score, height_diff, clear_line, holes, highest)
+
+def highest_block_raw(game_board):
+    for row in range(0,23):
+        for col in range(0,10): 
+            if game_board[row][col] ==  1:
+                return 23-row
+    return 0
 
 def highest_point_score(game_board):
     for row in range(0,23):
