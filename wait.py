@@ -10,7 +10,7 @@ def key_press_wait(key):
     keyboard = Controller()
     keyboard.press(key)
     keyboard.release(key)
-    time.sleep(random.uniform(0.04,0.05))
+    time.sleep(random.uniform(0.02,0.03))
 def key_press(key):
     #print(key)
     keyboard = Controller()

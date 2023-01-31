@@ -57,15 +57,17 @@ def print_board(game_board, title="board",start=0):
         print('')
 
 
-def num_time_shift_left(game_board): 
+def num_time_shift_left(game_board, rows_to_check = 5): 
     shifted_board = copy.deepcopy(game_board)
     num_times_shift = 0
-    for i in range(0, 10):
+    found = False
+    for i in range(0, len(game_board[0])):
+        if found:
+            break
         num_times_shift = i
-        if shifted_board[0][i] == 2 or shifted_board[1][i] == 2 or shifted_board[2][i] == 2 or shifted_board[3][i] == 2:
-            break
-        if shifted_board[4][i] == 2:
-            break
+        for j in range(0, min(rows_to_check, len(shifted_board))):
+            if shifted_board[j][i] == 2:
+                found = True
     # print(num_times_shift)
     return num_times_shift
 
@@ -104,6 +106,20 @@ def shift_array_right(arr, num_times_shift):
     arr[0] = 0;  
     #print(arr)
     return arr
+def raise_current(game_board):
+    # print("raising")
+    times_to_shift = 0
+    found = False
+    for row in range(0, 5):      
+        if found:
+            break    
+        for col in range(0,10):
+            if game_board[row][col] == 2:
+                times_to_shift = row
+                found = True
+                break
+    shifted_board = shift_up(game_board, times_to_shift)
+    return shifted_board 
 
 def drop_current(game_board):
     # print("dropping")
@@ -112,7 +128,7 @@ def drop_current(game_board):
         for col in range(0,10):
             if game_board[row][col] == 2:
                 for row_offset in range(row+1,24): # check below, addition loop for floor
-                    if row_offset == 23: # bottom
+                    if row_offset == 23: # bottom 
                         if row_offset-row-1 < times_to_drop:
                             times_to_drop = row_offset-row-1
                         break
@@ -124,7 +140,16 @@ def drop_current(game_board):
                             break
     shifted_board = shift_down(game_board, times_to_drop)
     return shifted_board 
- 
+
+def shift_up(game_board, num_times):
+    shifted_board = copy.deepcopy(game_board)
+    for row in range(0, 5):  
+        for col in range(0,10):  
+            if shifted_board[row][col] == 2:
+                shifted_board[row][col] = 0
+                shifted_board[row-num_times][col] = 2
+    return shifted_board
+
 def shift_down(game_board, num_times):
     shifted_board = copy.deepcopy(game_board)
     for row in range(0, 5):  
