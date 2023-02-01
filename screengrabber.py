@@ -13,20 +13,21 @@ def find_borders(target_hwnd):  # get borders of tetris board
     game_screen = getRectAsImage((left, top, right, bottom))
     print((left, top, right, bottom))
     game_screen = np.array(game_screen)
-    #cv2.imshow("Screen", game_screen)
+    #c
+   
     height, width, channels = game_screen.shape
     min_val = 2
     max_val = 255
     board_color_max = np.array([max_val, max_val, max_val]) 
     board_color_min = np.array([min_val, min_val, min_val])
     mask = cv2.inRange(game_screen, board_color_min, board_color_max)
-
-    
+    #cv2.imshow("Screen", mask)
+    # cv2.waitKey(-1)
     screen_top = -1
     screen_bottom = -1
     screen_left = -1
 
-    for col in range(int((width/100*30)), width):
+    for col in range(int((width/100*10)), width):
         color = mask[int(height / 2), col]
         if color > 0:  # found blank
             screen_left = col
@@ -53,6 +54,8 @@ def find_borders(target_hwnd):  # get borders of tetris board
     #print(tileSize)
     game_borders = (left+screen_left, int(top+screen_top-tileSize*3), right-screen_left, bottom-screen_bottom)
     print(game_borders)
+    # grab_screen(game_borders, True)
+    #game_borders = (-814, 518, -624, 958)
     # grab_screen(game_borders, True)
     return game_borders
 

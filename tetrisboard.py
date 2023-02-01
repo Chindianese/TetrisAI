@@ -60,7 +60,7 @@ def print_board(game_board, title="board",start=0):
 def num_time_shift_left(game_board, rows_to_check = 5): 
     shifted_board = copy.deepcopy(game_board)
     num_times_shift = 0
-    found = False
+    found = False 
     for i in range(0, len(game_board[0])):
         if found:
             break

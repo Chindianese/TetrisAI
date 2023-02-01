@@ -22,6 +22,7 @@ def start_ai(game_borders):
         skip = 0
         game_screen = screengrabber.grab_screen(game_borders, False)
         game_board = tetrisboard.screenshot_to_array(game_screen)
+        # wait.wait(0.6, 0.65)
         for rotate_index in range(0, 4):
             # tetrisboard.print_board(game_board)
             if rotate_index == 0: # blank board
@@ -32,7 +33,7 @@ def start_ai(game_borders):
                             edited[i][j] = 0
                 initial_score = score_board(edited)
                 # print("Initial score: ", initial_score)
-            # tetrisboard.print_board(game_board)           
+            # tetrisboard.print_board(game_boar d)           
             num_times_shift = tetrisboard.num_time_shift_left(game_board)
             shifted = tetrisboard.shift_moving_left_max(game_board, num_times_shift)
             shifted = tetrisboard.raise_current(shifted)
@@ -72,11 +73,11 @@ def start_ai(game_borders):
         num_attempts += 1
         # print('sc', current_score)
         # print('avg', total_score/num_attempts)    
-        # if switched_piece:
-        #     if current_score >= prev_score:
-        #         print('yes') 
-        #     else:
-        #         print('no')
+        if switched_piece:
+            if current_score >= prev_score:
+                print('yes') 
+            else:
+                print('no')
         if not switched_piece and current_score < -0.6:
             switch_piece()
             switched_piece = True
@@ -91,7 +92,7 @@ def start_ai(game_borders):
         #print("skip", skip)
         # keyboard.wait("tab")
         execute_option(num_times_shift_list[best_rotation], score_list[best_rotation][0], best_rotation)
-        wait.wait(0.04, 0.05)
+        wait.wait(0.01, 0.02)
         switched_piece = False
 def switch_piece():
     wait.key_press_wait(Key.shift_l)
@@ -120,7 +121,7 @@ def rotate_piece(game_board):
     right_trimmed = []
     for i in range(0, len(left_trimmed)):
         end = len(left_trimmed[i])-num_shift_right
-        val = left_trimmed[i][0:end]
+        val = left_trimmed[i][0:end]     
         right_trimmed.append(val)
     trimmed = right_trimmed
     # append
@@ -236,22 +237,23 @@ def score_board(game_board, initial_score = None):
         initial_score = (0,0,0,0,0,0)
         is_initial = True
 
+    score = 0 # dont touch
 
- 
-    score = 0
-    height_diff_multiplier = -0.8
-    line_clear_multiplier = 1.2
-    single_line_clear_multiplier = -1.2
+    height_diff_multiplier = -0.3
+    line_clear_multiplier = 2.7
+    single_line_clear_multiplier = -1.3
 
-    hole_multiplier =  -1.9
-    highest_multiplier =  -0.4
+    hole_multiplier =  -2.1
+    highest_multiplier =  -0.1
 
     height_diff = height_difference_score(game_board) * height_diff_multiplier- initial_score[1]
     highest_point_raw = highest_block_raw(game_board)
     line_clear_penalty = 2
-    if highest_point_raw >= 10:
+    # if highest_point_raw >= 4:
+    #     line_clear_penalty = 2
+    if highest_point_raw >= 9:
         line_clear_penalty = 1
-    if highest_point_raw >= 13:
+    if highest_point_raw >= 14:
         line_clear_penalty = 0
 
     cls =  clear_line_score(game_board)
@@ -259,7 +261,9 @@ def score_board(game_board, initial_score = None):
         clear_line = (line_clear_penalty-cls+1) * single_line_clear_multiplier - initial_score[2]
     else:
         clear_line = cls * cls * line_clear_multiplier - initial_score[2]
-    holes = hole_score(game_board) * hole_multiplier- initial_score[3]
+    holes = hole_score(game_board) * hole_multiplier - initial_score[3]
+    if cls > 0:
+        holes = 0
     highest_current = highest_point_score(game_board) 
     highest = (highest_current - highest_point_raw) * highest_multiplier
 
