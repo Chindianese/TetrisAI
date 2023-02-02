@@ -22,6 +22,7 @@ def start_ai(game_borders):
         skip = 0
         game_screen = screengrabber.grab_screen(game_borders, False)
         game_board = tetrisboard.screenshot_to_array(game_screen)
+        # time.sleep(0.5)
         for rotate_index in range(0, 4):
             # tetrisboard.print_board(game_board)
             if rotate_index == 0: # blank board
@@ -68,16 +69,18 @@ def start_ai(game_borders):
             # print("offset", time.time() - loop_offset )
         best_rotation = select_best_rotation(score_list)
         current_score = score_list[best_rotation][1][0]            
-        total_score += current_score
+        total_score += current_score 
         num_attempts += 1
         # print('sc', current_score)
-        # print('avg', total_score/num_attempts)    
-        # if switched_piece:
-        #     if current_score >= prev_score:
-        #         print('yes') 
-        #     else:
-        #         print('no')
-        if not switched_piece and current_score < -0.6:
+    
+        holes_score = score_list[best_rotation][1][3]
+        # print('holes', holes_score)
+        if switched_piece:
+            if current_score >= prev_score:
+                print('yes') 
+            else:
+                print('no')
+        if not switched_piece and (current_score < -0.65 or holes_score < 0):
             switch_piece()
             switched_piece = True
             # print('switching')
@@ -86,7 +89,8 @@ def start_ai(game_borders):
         # for rotate_index in range(0, len(best_boards)):
         #     print_board_with_score(best_boards[rotate_index], score_list[rotate_index],rotate_index, best_rotation)
         
-        # print_board_with_score(best_boards[best_rotation], score_list[best_rotation],best_rotation, best_rotation)
+        print_board_with_score(best_boards[best_rotation], score_list[best_rotation],best_rotation, best_rotation)
+        print('avg', total_score/num_attempts)    
         # print("loop", time.time() - loop_start)
         #print("skip", skip)
         # keyboard.wait("tab")
