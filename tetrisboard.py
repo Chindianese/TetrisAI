@@ -20,18 +20,32 @@ def screenshot_to_array(game_screen):
 
     rows, cols = (23, 10)
     game_board = [ [0]*cols for i in range(rows)]
-    for row in range(0, rows):
+    row_empty = False
+    for row_index in range(0, rows):
+        row = 22-row_index # bottom to top
         currentY = row*tile_size + half_tile
+        has_tile = False
         #print('current row-------------------', int(currentY))
         for col in range(0, 10):
             currentX = col * tile_size + half_tile
             currentVal = mask[int(currentY), int(currentX)]
             board_val = 0
+            # OLD CURRENT PIECE FINDER
+            # if currentVal > 0:
+            #     if row >= 0 and row <= 4:
+            #         board_val = 2
+            #     else:
+            #         board_val = 1
+            # NEW CURRENT PIECE FINDER
+            # find empty row, every above is current
             if currentVal > 0:
-                if row >= 0 and row <= 4:
+                has_tile = True
+                if row_empty:
                     board_val = 2
                 else:
                     board_val = 1
+            if col == 9 and not has_tile: # end of row
+                row_empty = True
             game_board[row][col] = board_val
             #print(int(currentX), currentVal)
 
@@ -46,7 +60,7 @@ def print_board(game_board, title="board",start=0):
         for col in range(10):
             number = game_board[row][col]
             if number == 0: 
-                if row < 5:
+                if row < 3: # above board
                     print(colored('0 ', 'blue'), end='')
                 else:
                     print(colored('0 ', 'grey'), end='')
@@ -57,7 +71,7 @@ def print_board(game_board, title="board",start=0):
         print('')
 
 
-def num_time_shift_left(game_board, rows_to_check = 5): 
+def num_time_shift_left(game_board, rows_to_check = 4): 
     shifted_board = copy.deepcopy(game_board)
     num_times_shift = 0
     found = False
@@ -71,15 +85,15 @@ def num_time_shift_left(game_board, rows_to_check = 5):
     # print(num_times_shift)
     return num_times_shift
 
-def shift_moving_left_max(game_board, num_times_shift):
+def shift_moving_left_max(game_board, num_times_shift, piece_row):
     shifted_board = copy.deepcopy(game_board)
-    for i in range(0,5):
+    for i in range(0,piece_row+1):
         row = shift_array_left(shifted_board[i], num_times_shift)    
         shifted_board[i] = row
     return shifted_board
 def shift_moving_right(game_board):
     shifted_board = copy.deepcopy(game_board)
-    for i in range(0,5):
+    for i in range(0,4):
         row = shift_array_right(shifted_board[i], 1)    
         shifted_board[i] = row
 
@@ -106,11 +120,11 @@ def shift_array_right(arr, num_times_shift):
     arr[0] = 0;  
     #print(arr)
     return arr
-def raise_current(game_board):
+def raise_current(game_board, current_piece_row):
     # print("raising")
     times_to_shift = 0
     found = False
-    for row in range(0, 5):      
+    for row in range(0, current_piece_row+1):      
         if found:
             break    
         for col in range(0,10):
@@ -118,7 +132,7 @@ def raise_current(game_board):
                 times_to_shift = row
                 found = True
                 break
-    shifted_board = shift_up(game_board, times_to_shift)
+    shifted_board = shift_up(game_board, times_to_shift, current_piece_row)
     return shifted_board 
 
 def drop_current(game_board):
@@ -141,9 +155,9 @@ def drop_current(game_board):
     shifted_board = shift_down(game_board, times_to_drop)
     return shifted_board 
 
-def shift_up(game_board, num_times):
+def shift_up(game_board, num_times, piece_row):
     shifted_board = copy.deepcopy(game_board)
-    for row in range(0, 5):  
+    for row in range(0, piece_row+1):  
         for col in range(0,10):  
             if shifted_board[row][col] == 2:
                 shifted_board[row][col] = 0
@@ -152,7 +166,7 @@ def shift_up(game_board, num_times):
 
 def shift_down(game_board, num_times):
     shifted_board = copy.deepcopy(game_board)
-    for row in range(0, 5):  
+    for row in range(0, 4):  
         for col in range(0,10):  
             if shifted_board[row][col] == 2:
                 shifted_board[row][col] = 0
@@ -160,7 +174,7 @@ def shift_down(game_board, num_times):
     return shifted_board
 
 def generate_drop_positions(game_board, num_times_shift, print_options = False):
-    game_board = shift_moving_left_max(game_board, num_times_shift) # move current to the left
+    # game_board = shift_moving_left_max(game_board, num_times_shift, 4) # move current to the left
     if print_options:
         print_board(game_board, "left shifted") 
     # calc num output
