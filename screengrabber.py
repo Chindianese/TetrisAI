@@ -32,7 +32,7 @@ def find_borders(target_hwnd):  # get borders of tetris board
             screen_left = col
             break
 
-    for row in range(int(height/100*20), height):
+    for row in range(int(height/100*5), height):
         color = mask[height - row-1, screen_left + 10]
         if color > 0:  # found blank
             screen_bottom = row
@@ -53,7 +53,7 @@ def find_borders(target_hwnd):  # get borders of tetris board
     #print(tileSize)
     game_borders = (left+screen_left, int(top+screen_top-tileSize*3), right-screen_left, bottom-screen_bottom)
     print(game_borders)
-    # grab_screen(game_borders, True)
+    grab_screen(game_borders, True)
     return game_borders
 
 def grab_screen(game_borders, show = False):

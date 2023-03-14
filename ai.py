@@ -26,15 +26,14 @@ def start_ai(game_borders):
         game_screen = screengrabber.grab_screen(game_borders, False)
         game_board_original = tetrisboard.screenshot_to_array(game_screen)
         game_board = copy.deepcopy(game_board_original)
-        tetrisboard.print_board(game_board)
+        # tetrisboard.print_board("initial board", game_board)
         loop_start = time.time ()
         if(not check_current_exists(game_board)):
             print('continue')
             continue
         if len(game_board[0]) < 10:
             print('break')
-            cv2.imshow("", game_screen)
-            cv2.waitKey(-1)
+            continue
         # time.sleep(0.5)
         for rotate_index in range(0, 4): 
             # tetrisboard.print_board(game_board)
@@ -47,14 +46,16 @@ def start_ai(game_borders):
                 initial_score = score_board(edited)
                 # print("Initial score: ", initial_score)
             # tetrisboard.print_board(game_board)           
-            num_times_shift = tetrisboard.num_time_shift_left(game_board)
             if len(game_board[0]) < 10:
                 print('break')
                 cv2.imshow("", game_screen)
                 cv2.waitKey(-1)
+            #tetrisboard.print_board(game_board, f"rotation: {rotate_index}")
             piece_row = current_piece_row(game_board)
             shifted_up = tetrisboard.raise_current(game_board, piece_row)
+            num_times_shift = tetrisboard.num_time_shift_left(shifted_up)
             shifted = tetrisboard.shift_moving_left_max(shifted_up, num_times_shift, piece_row)
+            # tetrisboard.print_board(shifted, f"rotation: {rotate_index}")
             repeat = False
             for board in rot_board:
                 if board == shifted:
@@ -93,15 +94,15 @@ def start_ai(game_borders):
         holes_score = score_list[best_rotation][1][3]
         # print('holes', holes_score)
         # print_board_with_score(best_boards[best_rotation], score_list[best_rotation],best_rotation, best_rotation)
-        succ = "Succes s"
+        succ = "Success"
         if switched_piece:
             if current_score >= prev_score:
                 success+= 1
             else:
                 success = success
-                succ = "Fail"
-            print(succ + " " + "Switch success rate: ", success/num_switch)
-        if not switched_piece and (current_score < -0.8 or holes_score < 0):
+                succ = "Failure"
+            print(succ + str(current_score) +"--" + "Switch success rate: ", success/num_switch)
+        if not switched_piece and (current_score < -0.8 or (holes_score < 0 and current_score < 1 )):
             switch_piece()
             print('switching score: ', current_score)
             switched_piece = True
@@ -121,20 +122,22 @@ def start_ai(game_borders):
         #print("current score", current_score)
         # print("loop avg",total_loop/num_attempts )
         #print("skip", skip)
-        # keyboard.wait("tab")
+       # print_board_with_score(best_boards[best_rotation], score_list[best_rotation],best_rotation, best_rotation)
+        # keyboard.wait("tab") # ---------------------------------------------------------
         execute_option(num_times_shift_list[best_rotation], score_list[best_rotation][0], best_rotation)
         wait.wait(0.04, 0.045)
         switched_piece = False
 def check_current_exists(arr):
-    for row in range(0,23):
+    count = 0
+    for row in range(0,23 ):
          for col in range(0,10):
             if arr[row][col] == 2:
-                return True
-    return False
+                count +=  1
+    return count == 4
              
-def switch_piece():
+def switch_piece(): 
     wait.key_press_wait(Key.shift_l)
-    wait.wait(0.01, 0.02)
+    wait.wait(0.04, 0.045)
 def rotate_piece(game_board, piece_row):
     top = game_board[max(piece_row-4, 0):piece_row+1]    
     rotated = list(zip(*top[::- 1]))
@@ -162,6 +165,11 @@ def rotate_piece(game_board, piece_row):
         val = left_trimmed[i][0:end]
         right_trimmed.append(val)
     trimmed = right_trimmed
+    # remove prev piece
+    for row in range(0,23):
+        for col in range(0,10):
+            if game_board[row][col] == 2:
+                game_board[row][col] = 0
     # append
     formatted = []
     for i in range(0, len(trimmed)):
@@ -219,6 +227,7 @@ def print_board_with_score(board, score, rotate_index,best_rotation):
     if rotate_index == best_rotation:
         title = "best"
     tetrisboard.print_board(board, title)
+    print("rot index",  best_rotation)
     print("score",  score[1][0])
     print("height diff", score[1][1])
     print("clear", score[1][2])
