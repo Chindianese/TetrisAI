@@ -29,7 +29,7 @@ def start_ai(game_borders):
         # tetrisboard.print_board("initial board", game_board)
         loop_start = time.time ()
         if(not check_current_exists(game_board)):
-            print('continue')
+            # print('continue')
             continue
         if len(game_board[0]) < 10:
             print('break')
@@ -87,7 +87,7 @@ def start_ai(game_borders):
             rotate_piece(game_board, piece_row)
             # print("offset", time.time() - loop_offset )
         best_rotation = select_best_rotation(score_list)
-        current_score = score_list[best_rotation][1][0]            
+        current_score = score_list[best_rotation][1][0]             
 
         # print('sc', current_score)
     
@@ -122,7 +122,7 @@ def start_ai(game_borders):
         #print("current score", current_score)
         # print("loop avg",total_loop/num_attempts )
         #print("skip", skip)
-       # print_board_with_score(best_boards[best_rotation], score_list[best_rotation],best_rotation, best_rotation)
+        print_board_with_score(best_boards[best_rotation], score_list[best_rotation],best_rotation, best_rotation)
         # keyboard.wait("tab") # ---------------------------------------------------------
         execute_option(num_times_shift_list[best_rotation], score_list[best_rotation][0], best_rotation)
         wait.wait(0.04, 0.045)
@@ -295,19 +295,19 @@ def score_board(game_board, initial_score = None):
 
  
     score = 0
-    height_diff_multiplier = -0.7
+    height_diff_multiplier = -0.9
     line_clear_multiplier = 2.2
     single_line_clear_multiplier = -1.2
 
-    hole_multiplier =  -2.0
+    hole_multiplier =  -2.5
     highest_multiplier =  -0.2
 
-    height_diff = height_difference_score(game_board) * height_diff_multiplier- initial_score[1]
+    height_diff = height_difference_score(game_board) * height_diff_multiplier - initial_score[1]
     highest_point_raw = highest_block_raw(game_board)
     line_clear_penalty = 2
-    if highest_point_raw >= 10:
+    if highest_point_raw >= 12:
         line_clear_penalty = 1
-    if highest_point_raw >= 13:
+    if highest_point_raw >= 15:
         line_clear_penalty = 0
 
     cls =  clear_line_score(game_board)
@@ -317,7 +317,10 @@ def score_board(game_board, initial_score = None):
         clear_line = cls * line_clear_multiplier - initial_score[2]
     holes = hole_score(game_board) * hole_multiplier- initial_score[3]
     highest_current = highest_point_score(game_board) 
-    highest = (highest_current - highest_point_raw) * highest_multiplier
+    height_increase = (highest_current - highest_point_raw)
+    highest = height_increase * height_increase * highest_multiplier
+    if height_increase < 0:
+        highest = -highest
 
     score += height_diff 
     score += clear_line
@@ -343,7 +346,7 @@ def highest_point_score(game_board):
     return 0
 
 
-def height_difference_score(game_board):
+def height_difference_score(game_board): # height diff per col, combats jaggedness
     height_diff = 0
     prev = 0
     for col in range(0,10): 
